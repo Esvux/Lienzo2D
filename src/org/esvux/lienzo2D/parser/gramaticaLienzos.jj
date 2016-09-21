@@ -1,0 +1,1246 @@
+options {
+  IGNORE_CASE = true;
+  STATIC = false;
+}
+
+PARSER_BEGIN(ParserL2D)
+package org.esvux.lienzo2D.parser;
+
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.sarina20lives.ast.*;
+import org.sarina20lives.compilacion.*;
+
+public class ParserL2D {
+
+  // Control de ambito ;) 
+  public Integer correlativo;
+  public Integer nivel;
+  public Integer padre;
+  public Integer ultimo;
+  public Lienzo lienzo;
+  public Integer visibilidad;
+
+    private void reportarError(String jsonString){
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject error = (JSONObject) parser.parse(jsonString);
+            String detalle = (String) error.get("detalle");
+            Integer fila = Integer.parseInt(error.get("linea").toString());
+            Integer columna = Integer.parseInt(error.get("columna").toString());
+            JSONArray esperados = (JSONArray) error.get("esperados");
+            detalle += "<br>";
+            for (Object esperado : esperados.toArray()) {
+                detalle += "<span class='esperado thin'>" + esperado + "</span>";
+            }
+            ManejadorErrores.getInstance().addErrorSintactico(fila, columna, detalle);
+        } catch (org.json.simple.parser.ParseException ex) {
+            Logger.getLogger(ParserL2D.class.getName()).log(Level.SEVERE, null, ex);
+        }        
+    }
+    
+  public static void main(String args[]) throws ParseException {
+    ParserL2D parser = new ParserL2D(new java.io.StringReader(""
+          +" publico Lienzo PetalosVerdes ¿ \n "
+          +" publico var entero limiteX, limiteY = 60$ \n "
+          +" Conservar publico entero[] Hojas(entero x, doble y, cadena diametro)¿ \n "
+          +"     var entero arreglo a,B,C[2]={x,y}$ \n "
+          +"     var entero a=5$ \n "
+          +"     para(var doble x = 350; x < 500; x++)¿ \n "
+          +"       diametro++$  \n "
+          +"       Pintar_P(x , y -= 1, \"#00CC00\", diametro - 50)$  \n "
+          +"     ?  \n "
+          +"     y = 500$ \n "
+          +"     para(x=200; x<350; x++)¿ \n "
+          +"       diametro--$  \n "
+          +"       Pintar_P(x, y -= 1, \"#00CC00\", diametro + -50)$  \n "
+          +"     ?  \n "
+          +"     para(y=350; y<500; y++)¿ \n "
+          +"       diametro++$  \n "
+          +"       Pintar_P(x += 1, y , \"#00CC00\", diametro + -50)$ \n "
+          +"     ?  \n "
+          +"     x=200$ \n "
+          +"     para(y=200; y<350; y++)¿ \n "
+          +"       diametro--$  \n "
+          +"       Pintar_P(x += 1, y, \"#00CC00\", diametro - 50)$  \n "
+          +"     ?  \n "
+          +"     retorna a$ \n "
+          +"   ?  \n "
+          +" Conservar privado cadena print(cadena mensaje)¿ \n "
+          +"     var entero a=3,C,D, E=0$ \n "
+          +"     retorna mensaje$ \n "
+          +"   ?  \n "
+          +" ? \n "));
+    parser.CLASE();
+    System.out.println("Análisis concluido!!");
+  }
+
+}
+PARSER_END(ParserL2D)
+
+SKIP: { " " | "\n" | "\t" | "\r" }
+
+MORE :
+{
+  ">>" : IN_SINGLE_LINE_COMMENT
+|
+  <"<-" ~["/"]> { input_stream.backup(1); } : IN_FORMAL_COMMENT
+|
+  "<-" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_FORMAL_COMMENT>
+SPECIAL_TOKEN :
+{
+  <FORMAL_COMMENT: "->" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN :
+{
+
+  <MULTI_LINE_COMMENT: "->" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT,IN_FORMAL_COMMENT,IN_MULTI_LINE_COMMENT>
+MORE :
+{
+  < ~[] >
+}
+
+
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Lienzo CLASE():{
+//  Lienzo lienzo = new Lienzo();
+  Token token;
+  this.visibilidad = Tipos.PUBLICO;
+  ArrayList<Nodo> sentencias = new ArrayList<Nodo>();
+  ArrayList<String> extendes = new ArrayList<String>();
+
+}
+{
+  (this.visibilidad=VISIBILIDAD())? <LIENZO> token=<ID> {
+        this.lienzo = new Lienzo (token.image, visibilidad);
+        // correlativo Se reinicia en cada método ;) 
+        this.correlativo=1;  
+        // nivel aumenta en cada ¿ y disminuye al cerrar con ?, nivel 0 le pertenece a lienzo
+        this.nivel=1;
+        // padre hace referencia al ambito padre que se tendra en la tabla de símbolo ;) 
+        this.padre=0;
+        // ultimo sirve para almacenar el valor más alto de ambito creado ;) 
+        this.ultimo=0;
+  }(<EXTIENDE> EXTENDES())? "¿"  (SENTENCIAS())?  "?" <EOF>
+  {
+    return this.lienzo;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Integer VISIBILIDAD():{}
+{
+  <PUBLICO>     { return Tipos.PUBLICO; }
+|
+  <PRIVADO>     { return Tipos.PRIVADO; }
+| 
+  <PROTEGIDO>   { return Tipos.PROTEGIDO; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+void EXTENDES():{
+  Token token1, token2;
+}
+{
+  token1=<ID> {
+    this.lienzo.generarExtend(token.image);
+  }
+  ("," token2=<ID> {
+    this.lienzo.generarExtend(token.image);
+  }
+  )*
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+void SENTENCIAS():{}
+{
+  SENTENCIA() (SENTENCIA())*
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+void SENTENCIA():{
+  Nodo principal, metodo,  acciones, parametros, declaracion, dimensiones, id1, id2;
+  Nodo valor = null;
+  ArrayList<Nodo> ids = new ArrayList<Nodo>();
+  Integer tempVisibilidad = this.visibilidad;
+  Integer tipo = Tipos.T_VOID;
+  Integer ambito = this.padre;
+  Boolean conservar = false;
+  Token token1, token2;
+  Integer numDims = 0;
+}
+{
+  //Elementos
+  (<CONSERVAR> {conservar = true;})? (this.visibilidad = VISIBILIDAD())? 
+    ( //Funciones y procedimientos
+      (tipo = TIPO())? ( numDims = L_CORCHETES())? token1=<ID> "("
+      {
+        // Creando un nuevo ambito 
+        this.ultimo++;
+        // Actualizando como padre el nuevo ambito 
+        this.padre=this.ultimo; 
+        // Iniciando el correlativo 
+        this.correlativo = 1;   
+        // Agregando el método 
+        // Aumentando el nivel 
+        this.nivel++;
+      }
+      parametros=PARAMS_DECLARACION() ")" "¿" acciones=ACCIONES()  "?"    
+      {
+        // Regresando el ambito 
+        this.padre=ambito;
+        // Regresando el nivel 
+        this.nivel--;
+        // Creando el nuevo método 
+        metodo = Nodo.crearMetodo(token1.image, tipo, ""+numDims, this.visibilidad, conservar, this.nivel, this.padre, this.correlativo, 
+          token1.beginLine, token1.beginColumn, parametros, acciones);
+        // Regresando la visibilidad ** //
+        this.visibilidad = tempVisibilidad;
+        this.lienzo.agregarMetodo(metodo);
+      }    
+
+    | //Variables globales
+      <VAR> tipo=TIPO()  
+      ( //Arreglo(s)
+        <ARREGLO> token1=<ID> 
+        {
+          // Creando  un arreglo 
+          id1 = Nodo.crearVariable(token1.image, tipo, this.visibilidad, conservar, this.padre, this.nivel, this.correlativo, Tipos.GLOBAL, token1.beginLine, token1.beginColumn);
+          ids.add(id1);
+          // Aumentar el correlativo 
+          this.correlativo++;
+        }
+        ("," token2=<ID>
+        {
+          // Creando  un arreglo 
+          id2 = Nodo.crearVariable(token2.image, tipo, this.visibilidad, conservar, this.padre, this.nivel, this.correlativo, Tipos.GLOBAL, token2.beginLine, token2.beginColumn);
+          ids.add(id2);
+          // Aumentar el correlativo 
+          this.correlativo++;
+        }
+        )* dimensiones=DIMENSIONES() ("=" ("{" valor=ASIG_ARREGLO() "}" | valor = EXPRESION()))?
+        {
+          // Agregando nodo a declaración 
+          declaracion = Nodo.crearDeclaracionArreglo(token1.beginLine, ids, dimensiones, valor);
+          this.lienzo.agregarDeclaracion(declaracion);
+        }
+      | //Variable(s)
+        token1=<ID> 
+        {
+          // Creando  una variable 
+          id1 = Nodo.crearVariable(token1.image, tipo, this.visibilidad, conservar, this.padre, this.nivel, this.correlativo, Tipos.GLOBAL, token1.beginLine, token1.beginColumn);
+          ids.add(id1);
+          // Aumentar el correlativo 
+          this.correlativo++;
+        }
+        ("=" valor=EXPRESION()
+        {
+          declaracion = Nodo.crearDeclaracion(token1.beginLine, ids, valor);
+          this.lienzo.agregarDeclaracion(declaracion);
+          ids.clear();
+          valor = null;
+        }
+        )? ("," token2=<ID> 
+        {
+          // Creando  una variable 
+          id2 = Nodo.crearVariable(token2.image, tipo, this.visibilidad, conservar, this.padre, this.nivel, this.correlativo, Tipos.GLOBAL, token2.beginLine, token2.beginColumn);
+          ids.add(id2);
+          // Aumentar el correlativo 
+          this.correlativo++;
+        }
+        ("=" valor=EXPRESION()
+        {
+          declaracion = Nodo.crearDeclaracion(token1.beginLine, ids, valor);
+          this.lienzo.agregarDeclaracion(declaracion);
+          ids.clear();
+          valor = null;
+        }
+        )?)*
+        { if(!ids.isEmpty()){
+            declaracion = Nodo.crearDeclaracion(token1.beginLine, ids, valor);
+            this.lienzo.agregarDeclaracion(declaracion);
+          }
+        }
+      ) <FIN>
+    )
+
+| //Principal
+  token1 = <PRINCIPAL> "(" ")" "¿" 
+  {
+    // Creando un nuevo ambito 
+    this.ultimo++;
+    // Actualizando como padre el nuevo ambito 
+    this.padre=this.ultimo; 
+    // Iniciando el correlativo 
+    this.correlativo = 1;   
+    // Aumentando el nivel 
+    this.nivel++;
+  }
+  acciones=ACCIONES() "?"
+  {
+    // Agregando a principal 
+    parametros = Nodo.crearTransicion (Tipos.PARAM_CREACION, "parametros", 0);
+    principal = Nodo.crearPrincipal(token1.image, this.nivel, this.padre, token1.beginLine, token1.beginColumn, parametros, acciones);
+    // Regresando el ambito 
+    this.padre=ambito;
+    // Regresando el nivel 
+    this.nivel--;
+    this.lienzo.agregarPrincipal(principal);
+  }
+}
+
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Integer L_CORCHETES():{
+Integer dimensiones = 0;
+}
+{
+  "[" "]" { dimensiones = 1; } ( "[" "]" { dimensiones += 1; })* { return dimensiones;}
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo PARAMS_DECLARACION():{
+  Nodo parametros = Nodo.crearTransicion (Tipos.PARAM_CREACION , "parametros", 0);
+  Nodo parametro1, parametro2;
+  Integer tipo=Tipos.NULL;
+  Token token1, token2;
+}
+{
+  (tipo=TIPO() token1=<ID> 
+  {
+    parametro1 = Nodo.crearVariable(token1.image, tipo, this.visibilidad, false, this.padre, this.nivel, this.correlativo, Tipos.LOCAL, token1.beginLine, token1.beginColumn);
+    // Aumentando el correlativo 
+    this.correlativo++;
+    parametros.agregarAParametros(parametro1);
+  }
+  ("," tipo=TIPO() token2=<ID>
+  {
+    parametro2 = Nodo.crearVariable(token2.image, tipo, this.visibilidad, false, this.padre, this.nivel, this.correlativo, Tipos.LOCAL, token2.beginLine, token2.beginColumn);
+    // Aumentando el correlativo 
+    this.correlativo++;    
+    parametros.addHijo(parametro2);
+  }    
+  )*
+  )?
+  {
+    return parametros;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo ACCIONES():{
+  Nodo acciones = Nodo.crearTransicion(Tipos.ACCIONES, "acciones", 0);
+  Nodo accion;
+}
+{
+  (accion=ACCION() { acciones.agregarAAcciones(accion, this.lienzo.getNombre()); } )*
+  {
+    return acciones;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo ACCION():{
+  Nodo nodo;
+}
+{
+    try{
+        (
+          nodo=DECLARACION() <FIN>              { return nodo; }
+        |
+          nodo=OPERACION() <FIN>                { return nodo; }
+        |
+          nodo=FLUJO_SI()                     { return nodo; }
+        | 
+          nodo=FLUJO_COMPROBAR()              { return nodo; }
+        |
+          nodo=BUCLE_PARA()                   { return nodo; }
+        | 
+          nodo=BUCLE_MIENTRAS()               { return nodo; }
+        |
+          nodo=BUCLE_HACER_MIENTRAS()         { return nodo; }
+        | 
+          nodo=ESCAPE() <FIN>                   { return nodo; }
+        |
+          nodo=FUNCION_PRIMITIVA() <FIN>        { return nodo; }
+        |
+          nodo=PROCEDIMIENTO_PRIMITIVO() <FIN>  { return nodo; }
+        |
+          nodo=RETORNO() <FIN>                  { return nodo; }
+        )
+    } catch (ParseException e) {
+        Token t;
+        do {
+            t = getNextToken();
+        } while (t.kind != FIN);
+        reportarError(e.getMessage());
+        return new Nodo();
+    }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo DECLARACION():{
+  Nodo declaraciones = Nodo.crearTransicion(Tipos.DECLARACIONES, "declaraciones", 0);
+  ArrayList<Nodo> ids = new ArrayList<Nodo>();
+  Nodo declaracion, dimensiones, id1, id2;
+  Nodo valor = null;
+  Integer visibilidad = this.visibilidad;
+  Boolean conservar = false;
+  Token token1, token2;
+  Integer tipo = Tipos.NULL;
+}
+{
+  //Declaracion de variables locales
+  (<CONSERVAR> {conservar = true;})? (visibilidad=VISIBILIDAD())? <VAR> tipo=TIPO() 
+      ( //Arreglo(s)
+        <ARREGLO> token1=<ID> 
+        {
+          // Creando  un arreglo 
+          id1 = Nodo.crearVariable(token1.image, tipo, visibilidad, conservar, this.padre, this.nivel, this.correlativo, Tipos.LOCAL, token1.beginLine, token1.beginColumn);
+          ids.add(id1);
+          // Aumentar el correlativo 
+          this.correlativo++;
+        }
+        ("," token2=<ID>
+        {
+          // Creando  un arreglo 
+          id2 = Nodo.crearVariable(token2.image, tipo, visibilidad, conservar, this.padre, this.nivel, this.correlativo, Tipos.LOCAL, token2.beginLine, token2.beginColumn);
+          ids.add(id2);
+          // Aumentar el correlativo 
+          this.correlativo++;
+        }
+        )* dimensiones=DIMENSIONES() ("=" ("{" valor=ASIG_ARREGLO() "}" | valor = EXPRESION()))?
+        {
+          // Agregando nodo a declaración 
+          declaracion = Nodo.crearDeclaracionArreglo(token1.beginLine, ids, dimensiones, valor);
+          declaraciones.agregarADeclaracion(declaracion);
+          return declaraciones;
+        }
+
+      | //Variable(s)
+        token1=<ID> 
+        {
+          // Creando  una variable 
+          id1 = Nodo.crearVariable(token1.image, tipo, visibilidad, conservar, this.padre, this.nivel, this.correlativo, Tipos.LOCAL, token1.beginLine, token1.beginColumn);
+          ids.add(id1);
+          // Aumentar el correlativo 
+          this.correlativo++;
+        }
+        ("=" valor=EXPRESION()
+        {
+          declaracion = Nodo.crearDeclaracion(token1.beginLine, ids, valor);
+          declaraciones.agregarADeclaracion(declaracion);
+          ids.clear();
+          valor = null;
+        }
+        )? ("," token2=<ID> 
+        {
+          // Creando  una variable 
+          id2 = Nodo.crearVariable(token2.image, tipo, visibilidad, conservar, this.padre, this.nivel, this.correlativo, Tipos.LOCAL, token2.beginLine, token2.beginColumn);
+          ids.add(id2);
+          // Aumentar el correlativo 
+          this.correlativo++;
+        }
+        ("=" valor=EXPRESION()
+        {
+          declaracion = Nodo.crearDeclaracion(token1.beginLine, ids, valor);
+          declaraciones.agregarADeclaracion(declaracion);
+          ids.clear();
+          valor = null; 
+        }
+        )?)*
+      )                       
+  { if(ids.isEmpty()){
+      return declaraciones;
+    }
+    declaracion = Nodo.crearDeclaracion(token1.beginLine, ids, valor);
+    declaraciones.agregarADeclaracion(declaracion);
+    return declaraciones;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo DIMENSIONES():{
+  Nodo dimensiones = Nodo.crearTransicion (Tipos.DIMENSION, "dimensiones", 0);
+  Nodo temp1, temp2;
+}
+{
+  "[" temp1=EXPRESION() "]"  { dimensiones.agregarADimension(temp1); } 
+  ("[" temp2=EXPRESION() "]" { dimensiones.addHijo(temp2); } )*
+  { return dimensiones; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo ASIG_ARREGLO():{
+  Nodo asignacion = Nodo.crearAsignacionArreglo("{}", Tipos.ARREGLO, 0);
+  Nodo temp1, temp2;
+}
+{
+  "{" temp1=ASIG_ARREGLO() "}"      { asignacion.agregarAAsignacion(temp1); }
+  ("," "{" temp2=ASIG_ARREGLO() "}" { asignacion.addHijo(temp2); } )*
+  { return asignacion; }
+|
+  temp1=EXPRESION()      { asignacion.agregarAAsignacion(temp1); }
+  ("," temp2=EXPRESION() { asignacion.addHijo(temp2); } )*
+  { return asignacion; }
+}
+
+
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo OPERACION():{
+  Nodo operacion, variable, dimensiones, valor, parametros;
+  Token token, operador;
+}
+{
+  token=<ID>  {   variable = Nodo.crearID(token.image, token.beginLine, token.beginColumn); }
+              (   dimensiones=DIMENSIONES()
+              {
+                  variable = Nodo.crearArreglo(token.image, token.beginLine, token.beginColumn, dimensiones);
+              }
+              )? 
+        ( //Asignación Inmediata
+          ( operador = <AUMENTAR> | operador = <DISMINUIR> ) valor = EXPRESION()
+          {
+            operacion = Nodo.crearAsignacion(operador.image, operador.beginLine, operador.beginColumn, variable, valor);
+            return operacion;
+          } 
+        | //Variación
+          ( operador = <AUMENTO> | operador = <DECREMENTO> )
+          {
+            operacion = Nodo.crearOperacionUnaria(Tipos.ARITMETICA, operador.image, operador.beginLine, operador.beginColumn, variable);
+            return operacion;
+          }                         
+        | //Asignación
+          "=" valor=EXPRESION()
+          {
+            operacion = Nodo.crearAsignacion ("=", variable.getFila(), variable.getColumna(), variable, valor);
+            return operacion;
+          }                 
+        | //Llamada
+          "(" parametros=PARAMS() ")" 
+          {
+            operacion = Nodo.crearLlamada(token.image, token.beginLine, token.beginColumn, parametros);
+            return operacion;
+          }        
+        )
+} 
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo PARAMS():{
+  Nodo parametros = Nodo.crearTransicion (Tipos.PARAM_LLAMADA, "parametros", 0);
+  Nodo param1, param2;
+}
+{
+  (
+    param1=EXPRESION() { parametros.agregarAParametros(param1); } 
+    ("," param2=EXPRESION() { parametros.agregarAParametros(param2); })*
+  )?
+  {
+    return parametros;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo FLUJO_SI():{
+  Nodo flujo, condicion, accionesSi;
+  Nodo accionesSino = null;
+  Token token;
+  // Guardando la referencia al padre 
+  Integer ambito = this.padre;
+  // Aumentando el nivel 
+  this.nivel++;  
+}
+{
+  token=<SI> "(" condicion=EXPRESION() ")" "¿"
+  {
+    // Creando un nuevo ambito 
+    this.ultimo++;
+    // Actualizando como padre el nuevo ambito 
+    this.padre=this.ultimo;    
+  } 
+  accionesSi=ACCIONES() "?" 
+  (<SINO> "¿" 
+  {
+    // Creando un nuevo ambito 
+    this.ultimo++;
+    // Actualizando como padre el nuevo ambito 
+    this.padre=this.ultimo;    
+  } 
+  accionesSino=ACCIONES() 
+  "?" )?
+  {
+    flujo = Nodo.crearFlujoSi(token.image, token.beginLine, token.beginColumn, condicion, accionesSi, accionesSino);
+    // regresando el nivel 
+    this.nivel--;
+    // regresando al padre 
+    this.padre = ambito;
+    return flujo;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo FLUJO_COMPROBAR():{
+  Nodo flujo, casos;
+  Token token;
+  // Guardando la referencia al padre 
+  Integer ambito = this.padre;
+  // Creando un nuevo ambito 
+  this.ultimo++;
+  // Actualizando como padre el nuevo ambito 
+  this.padre=this.ultimo;  
+}
+{
+  <COMPROBAR> "(" token = <ID> ")" "¿"
+  {
+    // aumentando el nivel 
+    this.nivel++;
+  } 
+  casos=CASOS() "?"
+  {
+    flujo = Nodo.crearFlujo(Tipos.FLUJO_COMPROBAR, token.image, token.beginLine, token.beginColumn, casos);
+    // regresando el nivel 
+    this.nivel--;
+    // regresando al padre 
+    this.padre = ambito;
+    return flujo;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo CASOS():{
+  Token token;
+  Nodo casos = Nodo.crearTransicion(Tipos.CASOS, "casos", 0);
+  Nodo caso, defecto, expresion;
+  Nodo acciones = null;
+  // Aumentando el nivel 
+  this.nivel++;
+}
+{
+  (token = <CASO> expresion=EXPRESION() ":" acciones = ACCIONES()
+    {
+      caso = Nodo.crearCaso(token.image, token.beginLine, token.beginColumn, expresion, acciones);
+      casos.agregarACasos(caso);
+      acciones = null;
+    }
+  )+ 
+  (token = <DEFECTO> ":" acciones = ACCIONES())?
+  {
+      defecto = Nodo.crearDefecto(token.image, token.beginLine, token.beginColumn, acciones);
+      casos.agregarACasos(defecto);
+      // regresando el nivel 
+      this.nivel--;
+      return casos;
+  } 
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo BUCLE_PARA():{
+  Nodo bucle, valorIni, valorFin, valor, incremento, acciones;
+  Token token;
+  // Guardando la referencia al padre 
+  Integer ambito = this.padre;
+  // Creando un nuevo ambito 
+  this.ultimo++;
+  // Actualizando como padre el nuevo ambito 
+  this.padre=this.ultimo;  
+}
+{
+  token = <PARA> 
+  {
+    // aumentando el nivel 
+    this.nivel++;
+  } 
+  "(" valorIni=ASIGNACION_PARA() ";" valorFin=EXPRESION() ";" incremento=EXPRESION() ")" "¿" acciones=ACCIONES() "?"
+  {
+    bucle = Nodo.crearBucle(Tipos.BUCLE_PARA, token.image, token.beginLine, token.beginColumn, valorIni, valorFin, incremento, acciones );
+    // regresando el nivel 
+    this.nivel--;
+    // regresando al padre 
+    this.padre = ambito;
+    return bucle;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo ASIGNACION_PARA():{
+  Nodo asignacion, declaracion, variable, valor;
+  Integer tipo = Tipos.NULL;
+  Token token;
+}
+{
+  (<VAR> tipo = TIPO())? token = <ID> "=" valor = EXPRESION() 
+  {
+    if(tipo != Tipos.NULL){
+      variable = Nodo.crearVariable(token.image, tipo, this.visibilidad, false, this.padre, this.nivel, this.correlativo, Tipos.LOCAL, token.beginLine, token.beginColumn);
+      declaracion = Nodo.crearDeclaracion(Tipos.VARIABLE, token.beginLine, variable, valor);
+      // Aumentar el correlativo
+      this.correlativo++;
+      return declaracion;
+    }else{
+      variable = Nodo.crearID(token.image, token.beginLine, token.beginColumn);
+      asignacion = Nodo.crearAsignacion("=", token.beginLine, token.beginColumn, variable, valor);
+      return asignacion;
+    }
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo BUCLE_MIENTRAS():{
+  Nodo bucle, condicion, acciones;
+  Token token;
+  // Guardando la referencia al padre 
+  Integer ambito = this.padre;
+  // Creando un nuevo ambito 
+  this.ultimo++;
+  // Actualizando como padre el nuevo ambito 
+  this.padre=this.ultimo;
+}
+{
+  token = <MIENTRAS> "(" condicion = EXPRESION() ")" "¿"
+  {
+    // aumentando el nivel 
+    this.nivel++;
+  } 
+  acciones = ACCIONES() "?"
+  {
+    bucle = Nodo.crearBucle(Tipos.BUCLE_MIENTRAS, token.image,  token.beginLine, token.beginColumn, condicion, acciones);
+    // regresando el nivel 
+    this.nivel--;
+    // regresando al padre 
+    this.padre = ambito;
+    return bucle;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo BUCLE_HACER_MIENTRAS():{
+  Nodo bucle, condicion, acciones;
+  Token token;
+  // Guardando la referencia al padre 
+  Integer ambito = this.padre;
+  // Creando un nuevo ambito 
+  this.ultimo++;
+  // Actualizando como padre el nuevo ambito 
+  this.padre=this.ultimo;
+}
+{
+  token = <HACER> "¿" 
+  {
+    // aumentando el nivel 
+    this.nivel++;
+  }
+    acciones=ACCIONES() "?" <MIENTRAS> "(" condicion=EXPRESION() ")" <FIN>
+  {
+    bucle = Nodo.crearBucle(Tipos.BUCLE_HACER, token.image, token.beginLine, token.beginColumn, condicion, acciones);
+    // regresando el nivel 
+    this.nivel--;
+    // regresando al padre 
+    this.padre = ambito;
+    return bucle;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo ESCAPE():{
+  Token token;
+}
+{
+  token = <SALIR>      { return Nodo.crearEscape(Tipos.SALIR, token.image, token.beginLine, token.beginColumn); }
+|
+  token = <CONTINUAR>  { return Nodo.crearEscape(Tipos.CONTINUAR, token.image, token.beginLine, token.beginColumn); }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Integer TIPO():{}
+{
+  <T_ENTERO>    { return Tipos.T_ENTERO; }
+|
+  <T_DOBLE>     { return Tipos.T_DOBLE; }
+|
+  <T_CARACTER>  { return Tipos.T_CARACTER; }
+|
+  <T_CADENA>    { return Tipos.T_CADENA; }
+|
+  <T_BOOLEAN>   { return Tipos.T_BOOLEAN; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo PROCEDIMIENTO_PRIMITIVO():{
+  Nodo procedimiento, posX, posY, color, diametro, alto, ancho, figura, texto;
+  Token token;
+}
+{
+  token = <P_P> "(" posX=EXPRESION() "," posY=EXPRESION() "," color=EXPRESION() "," diametro=EXPRESION()")"
+  {
+    procedimiento = Nodo.crearProcedimiento(Tipos.PINTAR_P, token.image, token.beginLine, token.beginColumn, posX, posY, color, diametro);
+    return procedimiento;
+  }
+| 
+  token = <P_OR> "(" posX=EXPRESION() "," posY=EXPRESION() "," color=EXPRESION() "," ancho=EXPRESION() "," alto=EXPRESION() "," figura=EXPRESION()")" 
+  {
+    procedimiento = Nodo.crearProcedimiento(Tipos.PINTAR_OR, token.image, token.beginLine, token.beginColumn, posX, posY, color, ancho, alto, figura);
+    return procedimiento;
+  }
+| 
+  token = <P_S> "(" posX=EXPRESION() "," posY=EXPRESION() "," color=EXPRESION() "," texto=EXPRESION() ")"
+  {
+    procedimiento = Nodo.crearProcedimiento(Tipos.PINTAR_S, token.image, token.beginLine, token.beginColumn, posX, posY, color, texto);
+    return procedimiento;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo FUNCION_PRIMITIVA():{
+  Nodo funcion, hijo;
+  Token token, tipoFuncion;
+  String orden;
+}
+{
+  (
+    tipoFuncion = <ORDENAR> "(" <ARREGLO> token = <ID> "," <TIPO> orden=ORDENAMIENTO() ")"
+  {
+    hijo = Nodo.crearID(token.image, token.beginLine, token.beginColumn);
+    funcion = Nodo.crearFuncion(Tipos.ORDENAR, orden, tipoFuncion.beginLine, tipoFuncion.beginColumn, hijo);
+    return funcion;
+  }
+|
+  tipoFuncion = <SUMARIZAR> "(" 
+    ( //Nombre de un arreglo
+      token=<ID> 
+      {
+        hijo = Nodo.crearID(token.image, token.beginLine, token.beginColumn);
+        funcion = Nodo.crearFuncion(Tipos.SUMARIZAR, "sumarizar", tipoFuncion.beginLine, tipoFuncion.beginColumn, hijo);
+      }
+    
+    | //Valor de arreglo
+      "{" hijo=ASIG_ARREGLO() "}"
+      { 
+        funcion = Nodo.crearFuncion(Tipos.SUMARIZAR, "sumarizar", tipoFuncion.beginLine, tipoFuncion.beginColumn, hijo);
+      } 
+    )
+    ")"
+  )
+  { return funcion; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+String ORDENAMIENTO():{
+  Token token;
+}
+{
+  token = <ASCENDENTE>    { return token.image; }
+|
+  token = <DESCENDENTE>   { return token.image; }
+|
+  token = <PARES>         { return token.image; }
+|
+  token = <IMPARES>       { return token.image; }
+| 
+  token = <PRIMOS>        { return token.image; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo RETORNO():{
+  Nodo operacion, expresion;
+  Token token;
+}
+{
+  token = <RETORNA> expresion = EXPRESION() 
+  {
+    operacion = Nodo.crearRetorna(token.image, token.beginLine, token.beginColumn, expresion);
+    return operacion;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo EXPRESION():{
+  Nodo operacion, hijo;
+}
+{
+  hijo=LOG1() 
+  {  
+    operacion = Nodo.crearTransicion(Tipos.EXPRESION, "expresion", hijo.getFila()); 
+    operacion.addHijo(hijo);
+    return operacion; 
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo LOG1():{
+  Nodo operacion, izq, der;
+  Token operador;
+}
+{
+  operacion = LOG2()  
+    ( //OR
+      operador = <OR> der = LOG2() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.LOGICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //NOR
+      operador = <NOR> der = LOG2() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.LOGICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //XOR
+      operador = <XOR> der = LOG2() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.LOGICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    )* 
+  { return operacion; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo LOG2():{
+  Nodo operacion, izq, der;
+  Token operador;
+}
+{
+  operacion = LOG3()  
+    ( //AND
+      operador = <AND> der = LOG3() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.LOGICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //NAND
+      operador = <NAND> der = LOG3() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.LOGICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    )* 
+  { return operacion; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo LOG3():{
+  Nodo operacion, izq;
+  Token operador = null; 
+}
+{
+  (operador = <NOT> )? izq = REL1()
+  {
+    if(operador == null){
+      return izq;
+    }
+    operacion = Nodo.crearOperacionUnaria(Tipos.LOGICA, operador.image, operador.beginLine, operador.beginColumn, izq); 
+    return operacion;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo REL1():{
+  Nodo operacion, izq, der;
+  Token operador;
+}
+{
+  operacion = REL2()  
+    ( //Incremento Inmediato
+      operador = <AUMENTAR> der = REL2()
+      { 
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearAsignacion(operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //Decremento Inmediato
+      operador = <DISMINUIR> der = REL2()
+      { 
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearAsignacion(operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //Igualación
+      operador = <IGUAL> der = REL2() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.RELACIONAL, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //Diferenciación
+      operador = <DIFERENTE> der = REL2() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.RELACIONAL, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      }  
+    )* 
+  { return operacion; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo REL2():{
+  Nodo operacion, izq, der;
+  Token operador;
+}
+{
+  operacion = REL3()  
+    ( //Menor
+      operador = <MENOR> der = REL3() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.RELACIONAL, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //Menor o Igual
+      operador = <MENORIGUAL> der = REL3() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.RELACIONAL, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //Mayor
+      operador = <MAYOR> der = REL3() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.RELACIONAL, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      }           
+    | //Mayor o Igual
+      operador = <MAYORIGUAL> der = REL3() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.RELACIONAL, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    )* 
+  { return operacion; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo REL3():{
+  Nodo operacion, izq;
+  Token operador = null; 
+}
+{
+  (operador = <NULO> )? izq = ARIT1()
+  {
+    if(operador == null){
+      return izq;
+    }
+    operacion = Nodo.crearOperacionUnaria(Tipos.RELACIONAL, operador.image, operador.beginLine, operador.beginColumn, izq); 
+    return operacion;
+  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo ARIT1():{
+  Nodo operacion, izq, der;
+  Token operador;
+}
+{
+  operacion = ARIT2() 
+    ( //Suma
+      operador = <SUMA> der = ARIT2() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.ARITMETICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //Resta
+      operador = <RESTA> der = ARIT2() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.ARITMETICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    )* 
+  { return operacion; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo ARIT2():{
+  Nodo operacion, izq, der;
+  Token operador;
+}
+{
+  operacion = ARIT3() 
+    ( //División
+      operador = <DIVISION> der = ARIT3() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.ARITMETICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    | //Multiplicación
+      operador = <MULTIPLICACION> der = ARIT3() 
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.ARITMETICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    )* 
+  { return operacion; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo ARIT3():{
+  Nodo operacion, izq, der;
+  Token operador;
+}
+{
+  operacion = VALOR() 
+    ( //Potencia
+      operador = <POTENCIA> der = VALOR()
+      {
+        izq = Nodo.duplicar(operacion);
+        operacion = Nodo.crearOperacionBinaria(Tipos.ARITMETICA, operador.image, operador.beginLine, operador.beginColumn, izq, der);
+      } 
+    )* 
+  { return operacion; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo VALOR():{
+  Token token, operador;
+  Nodo operacion, valor, parametros, dimensiones;
+}
+{
+  "(" valor = EXPRESION() ")" { return valor; }
+|
+  valor = FUNCION_PRIMITIVA() { return valor; }
+|
+  token = <ID>  
+  {
+    valor = Nodo.crearID(token.image, token.beginLine, token.beginColumn);    
+  }     
+    ( //Variación
+      (operador = <AUMENTO> | operador = <DECREMENTO>  )
+      {
+        operacion = Nodo.crearOperacionUnaria(Tipos.ARITMETICA, operador.image, operador.beginLine, operador.beginColumn, valor);
+        return operacion;
+      }
+    | //Arreglo
+      dimensiones = DIMENSIONES() 
+      {
+          valor = Nodo.crearArreglo(token.image, token.beginLine, token.beginColumn, dimensiones);
+          return valor;
+      }
+    | //Llamada
+      "(" parametros = PARAMS() ")" 
+      {
+          valor = Nodo.crearLlamada(token.image, token.beginLine, token.beginColumn, parametros);
+          return valor;
+      }        
+    )? 
+  { return valor; }
+|
+  valor = PUNTUAL() { return valor; }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+Nodo PUNTUAL():{
+  Token token;
+  Nodo terminal;
+  String sinComillas;
+}
+{
+  token=<ENTERO>  { terminal = Nodo.crearTerminal(Tipos.ENTERO, Tipos.T_ENTERO, token.image, token.image, token.beginLine, token.beginColumn);   
+                    return terminal; }
+|
+  token=<DECIMAL> { terminal = Nodo.crearTerminal(Tipos.DOBLE, Tipos.T_DOBLE, token.image, token.image, token.beginLine, token.beginColumn);    
+                    return terminal; }
+|
+  token=<TRUE>    { terminal = Nodo.crearTerminal(Tipos.TRUE, Tipos.T_BOOLEAN, token.image, token.image, token.beginLine, token.beginColumn);     
+                    return terminal; }
+|
+  token=<FALSE>   { terminal = Nodo.crearTerminal(Tipos.FALSE, Tipos.T_BOOLEAN, token.image, token.image, token.beginLine, token.beginColumn);    
+                    return terminal; }
+|
+  token=<CHAR>    { sinComillas = (token.image).replace("\'", "");
+                    terminal = Nodo.crearTerminal(Tipos.CARACTER, Tipos.T_CARACTER, sinComillas, sinComillas, token.beginLine, token.beginColumn); 
+                    return terminal; 
+                  }
+|
+  token=<CADENA>  { sinComillas = (token.image).replace("\"", "");
+                    terminal = Nodo.crearTerminal(Tipos.CADENA, Tipos.T_CADENA, sinComillas, sinComillas, token.beginLine, token.beginColumn);   
+                    return terminal; 
+                  }
+}
+
+// <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
+TOKEN:{
+    <         ENTERO  : (("-")? ["0"-"9"])+>
+  | <        DECIMAL  : (("-")? ["0"-"9"])+ "." (["0"-"9"])+>
+
+  | <        LIENZO  : "Lienzo"                                                                                                   >
+  | <      EXTIENDE  : "Extiende"                                                                                                 >
+  | <       PUBLICO  : "publico"                                                                                                  >
+  | <       PRIVADO  : "privado"                                                                                                  >
+  | <     PROTEGIDO  : "protegido"                                                                                                >
+  | <           VAR  : "var"                                                                                                      >
+  | <       ARREGLO  : "arreglo"                                                                                                  >
+  | <     CONSERVAR  : "Conservar"                                                                                                >
+  | <      T_ENTERO  : "entero"                                                                                                   >
+  | <      T_CADENA  : "cadena"                                                                                                   >
+  | <    T_CARACTER  : "caracter"                                                                                                 >
+  | <     T_BOOLEAN  : "boolean"                                                                                                  >
+  | <       T_DOBLE  : "doble"                                                                                                    >
+  | <          TRUE  : "true"                                                                                                     >
+  | <         FALSE  : "false"                                                                                                    >
+  | <            SI  : "si"                                                                                                       >
+  | <          SINO  : "sino"                                                                                                     >
+  | <     COMPROBAR  : "comprobar"                                                                                                >
+  | <          CASO  : "caso"                                                                                                     >
+  | <       DEFECTO  : "defecto"                                                                                                  >
+  | <          PARA  : "para"                                                                                                     >
+  | <      MIENTRAS  : "mientras"                                                                                                 >
+  | <         HACER  : "hacer"                                                                                                    >
+  | <     CONTINUAR  : "Continuar"                                                                                                >
+  | <         SALIR  : "Salir"                                                                                                    >
+  | <       RETORNA  : "retorna"                                                                                                  >
+  | <           P_P  : "Pintar_P"                                                                                                 >
+  | <          P_OR  : "Pintar_OR"                                                                                                >
+  | <           P_S  : "Pintar_S"                                                                                                 >
+  | <     PRINCIPAL  : "Principal"                                                                                                >
+  | <       ORDENAR  : "Ordenar"                                                                                                  >
+  | <          TIPO  : "tipo"                                                                                                     >      
+  | <     SUMARIZAR  : "Sumarizar"                                                                                                >
+  | <    ASCENDENTE  : "ascendente"                                                                                               > 
+  | <   DESCENDENTE  : "descendente"                                                                                              >
+  | <         PARES  : "pares"                                                                                                    >
+  | <       IMPARES  : "impares"                                                                                                  >
+  | <        PRIMOS  : "primos"                                                                                                   >
+
+
+  | <             ID  : ["a"-"z","A"-"Z", "_"] (["a"-"z","A"-"Z","0"-"9","_"])*>
+  | <           CHAR  : "'"  ( (~["'","\\","\n","\r"]) | ("\\" ["n","t","v","b","r","f","a","\\","?","'","\""] ) )  "'">
+  | <         CADENA  : "\"" ( (~["\"","\\","\n","\r"]) | ("\\" ["n","t","v","b","r","f","a","\\","?","'","\""] ) )* "\"">
+  | <        AUMENTO  : "++">
+  | <     DECREMENTO  : "--">
+  | <           SUMA  : "+">
+  | <          RESTA  : "-">
+  | < MULTIPLICACION  : "*">
+  | <       DIVISION  : "/">
+  | <       POTENCIA  : "^">
+
+  | <             OR  : "||">
+  | <            AND  : "&&">
+  | <            NOR  : "!||">
+  | <           NAND  : "!&&">
+  | <            XOR  : "&|">
+  | <            NOT  : "!">
+  
+  | <         IGUAL  : "=="                                                                                                       >
+  | <     DIFERENTE  : "!="                                                                                                       >
+  | <         MENOR  : "<"                                                                                                        >
+  | <         MAYOR  : ">"                                                                                                        >
+  | <    MENORIGUAL  : "<="                                                                                                       >
+  | <    MAYORIGUAL  : ">="                                                                                                       >
+  | <          NULO  : "!&¡"                                                                                                      >
+  | <      AUMENTAR  : "+="                                                                                                       >
+  | <     DISMINUIR  : "-="                                                                                                       >
+  | <           FIN  : "$"                                                                                                        >
+}
