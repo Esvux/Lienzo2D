@@ -35,7 +35,7 @@ public class LostCanvas extends Canvas {
     private final List<Figura> elementos;
 
     public LostCanvas() {
-        this.setSize(800, 500);
+        this.setSize(1200, 900);
         this.elementos = Collections.synchronizedList(new ArrayList<>());
     }
 

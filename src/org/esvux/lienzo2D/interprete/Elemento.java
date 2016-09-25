@@ -9,19 +9,19 @@ import org.esvux.lienzo2D.interprete.expresion.Check;
  *
  * @author esvux
  */
-public class Elemento implements Comparable<Elemento>, Comparator<Elemento>{
+public class Elemento implements Comparable<Elemento>, Comparator<Elemento> {
 
     public static Elemento createVariable(String nombre, Integer tipo, Integer nivel, Integer visibilidad) {
         Elemento var = new Elemento(nombre, tipo, nivel, visibilidad);
         var.setValor(null);
         return var;
     }
-    
+
     public static Elemento createArreglo(String nombre, Integer tipo, Integer nivel, Integer visibilidad) {
-        Elemento arr= new Elemento(nombre, tipo, nivel, visibilidad, true);
+        Elemento arr = new Elemento(nombre, tipo, nivel, visibilidad, true);
         return arr;
     }
-    
+
     private String nombre;
     private String valor;
     private Integer tipo;
@@ -34,10 +34,11 @@ public class Elemento implements Comparable<Elemento>, Comparator<Elemento>{
 
     /**
      * Constructor para declaracion de variables
+     *
      * @param nombre
      * @param tipo
      * @param nivel
-     * @param visibilidad 
+     * @param visibilidad
      */
     private Elemento(String nombre, Integer tipo, Integer nivel, Integer visibilidad) {
         this.nombre = nombre;
@@ -50,11 +51,12 @@ public class Elemento implements Comparable<Elemento>, Comparator<Elemento>{
 
     /**
      * Constructor para declaracion de arreglos
+     *
      * @param nombre
      * @param tipo
      * @param nivel
      * @param visibilidad
-     * @param esArreglo 
+     * @param esArreglo
      */
     private Elemento(String nombre, Integer tipo, Integer nivel, Integer visibilidad, boolean esArreglo) {
         this.nombre = nombre;
@@ -67,20 +69,20 @@ public class Elemento implements Comparable<Elemento>, Comparator<Elemento>{
         this.valores = new ArrayList<>();
     }
 
-    public void agregarDimension(Integer dimension){
+    public void agregarDimension(Integer dimension) {
         this.dimensiones.add(dimension);
     }
-    
-    public void generarValores(Integer capacidad){
-        for(int i=0; i<capacidad; i++){
-           this.valores.add(null);
+
+    public void generarValores(Integer capacidad) {
+        for (int i = 0; i < capacidad; i++) {
+            this.valores.add(null);
         }
     }
-    
-    private void agregarValor(String valor){
+
+    private void agregarValor(String valor) {
         this.valores.add(valor);
     }
-    
+
     public Integer getNivel() {
         return nivel;
     }
@@ -128,8 +130,8 @@ public class Elemento implements Comparable<Elemento>, Comparator<Elemento>{
     public ArrayList<String> getValores() {
         return valores;
     }
-    
-    public Integer gerSizeValores(){
+
+    public Integer gerSizeValores() {
         return this.valores.size();
     }
 
@@ -145,7 +147,7 @@ public class Elemento implements Comparable<Elemento>, Comparator<Elemento>{
         this.dimensiones = dimensiones;
     }
 
-    public Integer getCapacidad(){
+    public Integer getCapacidad() {
         return this.getValores().size();
     }
 
@@ -156,7 +158,7 @@ public class Elemento implements Comparable<Elemento>, Comparator<Elemento>{
     public void setEsArreglo(Boolean esArreglo) {
         this.esArreglo = esArreglo;
     }
-   
+
     @Override
     public int compareTo(Elemento o) {
         int compNombre = this.nombre.compareTo(o.nombre);
@@ -170,176 +172,199 @@ public class Elemento implements Comparable<Elemento>, Comparator<Elemento>{
     public int compare(Elemento o1, Elemento o2) {
         return o1.compareTo(o2);
     }
-    
-    public boolean realizarAsignacion(Resultado solucion){
-        if(Check.EsTipo(this.getTipo(),Tipos.T_ENTERO)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_ENTERO)){
+
+    public boolean realizarAsignacion(Resultado solucion) {
+        if (Check.EsTipo(this.getTipo(), Tipos.T_ENTERO)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_ENTERO)) {
                 this.setValor(solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_DOBLE)){
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_DOBLE)) {
                 this.setValor(Check.DobleToEntero(Check.ToDoble(solucion.getValor())));
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_BOOLEAN)){
-                this.setValor(""+Check.BooleanToEntero(solucion.getValor()));
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_BOOLEAN)) {
+                this.setValor("" + Check.BooleanToEntero(solucion.getValor()));
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_CARACTER)){
-                this.setValor(""+Check.CaracterToEntero(solucion.getValor()));
-                return true;
-            }
-        }
-        if(Check.EsTipo(this.getTipo(),Tipos.T_DOBLE)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_ENTERO)){
-                this.setValor(""+Check.ToDoble(solucion.getValor()));
-                return true;
-            }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_DOBLE)){
-                this.setValor(solucion.getValor());
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_CARACTER)) {
+                this.setValor("" + Check.CaracterToEntero(solucion.getValor()));
                 return true;
             }
         }
-        if(Check.EsTipo(this.getTipo(),Tipos.T_BOOLEAN)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_BOOLEAN)){
+        if (Check.EsTipo(this.getTipo(), Tipos.T_DOBLE)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_ENTERO)) {
+                this.setValor("" + Check.ToDoble(solucion.getValor()));
+                return true;
+            }
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_DOBLE)) {
                 this.setValor(solucion.getValor());
                 return true;
             }
         }
-        if(Check.EsTipo(this.getTipo(),Tipos.T_CARACTER)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_ENTERO)){
-                this.setValor(""+(char)Check.ToEntero(solucion.getValor()));
-                return true;
-            }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_CARACTER)){
+        if (Check.EsTipo(this.getTipo(), Tipos.T_BOOLEAN)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_BOOLEAN)) {
                 this.setValor(solucion.getValor());
                 return true;
             }
         }
-        if(Check.EsTipo(this.getTipo(),Tipos.T_CADENA)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_ENTERO)){
+        if (Check.EsTipo(this.getTipo(), Tipos.T_CARACTER)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_ENTERO)) {
+                this.setValor("" + (char) Check.ToEntero(solucion.getValor()));
+                return true;
+            }
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_CARACTER)) {
                 this.setValor(solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_DOBLE)){
+        }
+        if (Check.EsTipo(this.getTipo(), Tipos.T_CADENA)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_ENTERO)) {
                 this.setValor(solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_BOOLEAN)){
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_DOBLE)) {
                 this.setValor(solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_CARACTER)){
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_BOOLEAN)) {
                 this.setValor(solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_CADENA)){
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_CARACTER)) {
                 this.setValor(solucion.getValor());
                 return true;
-            }                        
+            }
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_CADENA)) {
+                this.setValor(solucion.getValor());
+                return true;
+            }
         }
         return false;
     }
-    
-    public boolean realizarAsignacionArreglo(Resultado solucion, Integer posicion){
-        if(Check.EsTipo(this.getTipo(),Tipos.T_ENTERO)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_ENTERO)){
+
+    public boolean realizarAsignacionArreglo(Resultado solucion, Integer posicion) {
+        if (Check.EsTipo(this.getTipo(), Tipos.T_ENTERO)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_ENTERO)) {
                 this.valores.set(posicion, solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_DOBLE)){
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_DOBLE)) {
                 this.valores.set(posicion, Check.DobleToEntero(Check.ToDoble(solucion.getValor())));
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_BOOLEAN)){
-                this.valores.set(posicion, ""+Check.BooleanToEntero(solucion.getValor()));
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_BOOLEAN)) {
+                this.valores.set(posicion, "" + Check.BooleanToEntero(solucion.getValor()));
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_CARACTER)){
-                this.valores.set(posicion, ""+Check.CaracterToEntero(solucion.getValor()));
-                return true;
-            }
-        }
-        if(Check.EsTipo(this.getTipo(),Tipos.T_DOBLE)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_ENTERO)){
-                this.valores.set(posicion, ""+Check.ToDoble(solucion.getValor()));
-                return true;
-            }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_DOBLE)){
-                this.valores.set(posicion, solucion.getValor());
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_CARACTER)) {
+                this.valores.set(posicion, "" + Check.CaracterToEntero(solucion.getValor()));
                 return true;
             }
         }
-        if(Check.EsTipo(this.getTipo(),Tipos.T_BOOLEAN)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_BOOLEAN)){
+        if (Check.EsTipo(this.getTipo(), Tipos.T_DOBLE)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_ENTERO)) {
+                this.valores.set(posicion, "" + Check.ToDoble(solucion.getValor()));
+                return true;
+            }
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_DOBLE)) {
                 this.valores.set(posicion, solucion.getValor());
                 return true;
             }
         }
-        if(Check.EsTipo(this.getTipo(),Tipos.T_CARACTER)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_ENTERO)){
-                this.valores.set(posicion, ""+(char)Check.ToEntero(solucion.getValor()));
-                return true;
-            }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_CARACTER)){
+        if (Check.EsTipo(this.getTipo(), Tipos.T_BOOLEAN)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_BOOLEAN)) {
                 this.valores.set(posicion, solucion.getValor());
                 return true;
             }
         }
-        if(Check.EsTipo(this.getTipo(),Tipos.T_CADENA)){
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_ENTERO)){
+        if (Check.EsTipo(this.getTipo(), Tipos.T_CARACTER)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_ENTERO)) {
+                this.valores.set(posicion, "" + (char) Check.ToEntero(solucion.getValor()));
+                return true;
+            }
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_CARACTER)) {
                 this.valores.set(posicion, solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_DOBLE)){
+        }
+        if (Check.EsTipo(this.getTipo(), Tipos.T_CADENA)) {
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_ENTERO)) {
                 this.valores.set(posicion, solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_BOOLEAN)){
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_DOBLE)) {
                 this.valores.set(posicion, solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_CARACTER)){
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_BOOLEAN)) {
                 this.valores.set(posicion, solucion.getValor());
                 return true;
             }
-            if(Check.EsTipo(solucion.getTipo(),Tipos.T_CADENA)){
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_CARACTER)) {
                 this.valores.set(posicion, solucion.getValor());
                 return true;
-            }                        
+            }
+            if (Check.EsTipo(solucion.getTipo(), Tipos.T_CADENA)) {
+                this.valores.set(posicion, solucion.getValor());
+                return true;
+            }
         }
         return false;
     }
-    
-    public Resultado obtenerValorArrelgo(Integer posicion){
+
+    public Resultado obtenerValorArrelgo(Integer posicion) {
         Resultado solucion = new Resultado(this.tipo, this.valores.get(posicion));
-        return solucion;                
+        return solucion;
     }
 
-    public Resultado obtenerValor(){
+    public Resultado obtenerValor() {
         Resultado solucion = new Resultado(this.getTipo(), this.valor);
-        return solucion;                
+        return solucion;
     }
-    
-    public Integer obtenerPosicion(ArrayList<Resultado> soluciones){
-        for(int i=0; i<soluciones.size(); i++){
-            if(!Check.EsTipo(soluciones.get(i).getTipo(), Tipos.T_ENTERO)){
+
+    public Integer obtenerPosicion(ArrayList<Resultado> soluciones) {
+        for (int i = 0; i < soluciones.size(); i++) {
+            if (!Check.EsTipo(soluciones.get(i).getTipo(), Tipos.T_ENTERO)) {
                 // Nota: El error ya se ha contemplado al resolverDimensiones 
                 return -1;
             }
         }
         Integer capacidad = getCapacidad();
         Integer posicion = 0;
-        Integer tempPosicion = 0;
-        for (int j=0; j<soluciones.size()-1; j++){
+        Integer posicionTemporal = 0;
+        int fin = soluciones.size() - 1;
+        for (int j = 0; j < fin; j++) {
             capacidad = capacidad / this.getDimensiones().get(j);
-            posicion = tempPosicion + Check.ToEntero(soluciones.get(j).getValor())*capacidad + Check.ToEntero(soluciones.get(j+1).getValor());  
-            tempPosicion = posicion - Check.ToEntero(soluciones.get(j+1).getValor());
+            posicion = posicionTemporal + Check.ToEntero(soluciones.get(j).getValor()) * capacidad + Check.ToEntero(soluciones.get(j + 1).getValor());
+            posicionTemporal = posicion - Check.ToEntero(soluciones.get(j + 1).getValor());
         }
-        if(soluciones.size()==1){
+        if (soluciones.size() == 1) {
             return Check.ToEntero(soluciones.get(0).getValor());
         }
         return posicion;
+    }
+
+    public Integer obtenerOtraPosicion(ArrayList<Resultado> soluciones) {
+        for (int i = 0; i < soluciones.size(); i++) {
+            if (!Check.EsTipo(soluciones.get(i).getTipo(), Tipos.T_ENTERO)) {
+                // Nota: El error ya se ha contemplado al resolverDimensiones 
+                return -1;
+            }
+        }
+        Integer capacidad = getCapacidad();
+        Integer posicion = 0;
+        Integer posicionTemporal = 0;
+        int fin = soluciones.size() - 1;
+        for (int j = 0; j < fin; j++) {
+            capacidad = capacidad / this.getDimensiones().get(j);
+            posicion = posicionTemporal + Check.ToEntero(soluciones.get(j).getValor()) * capacidad + Check.ToEntero(soluciones.get(j + 1).getValor());
+            posicionTemporal = posicion - Check.ToEntero(soluciones.get(j + 1).getValor());
+        }
+        if (soluciones.size() == 1) {
+            return Check.ToEntero(soluciones.get(0).getValor());
+        }
+        return (posicion==0)? 1 : 0;
     }
     
 }
