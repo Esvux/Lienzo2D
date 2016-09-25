@@ -25,9 +25,9 @@ public class TablaSimbolos {
     /**
      * Constructor vacio
      */
-    public TablaSimbolos() {
+    public TablaSimbolos(String lienzo) {
         this.ts = new ArrayList<>();
-        this.nombre = "";
+        this.nombre = lienzo;
         this.permisoPrivado = true;
     }
 

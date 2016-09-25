@@ -9,11 +9,13 @@ package org.esvux.lienzo2D.parser;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.esvux.lienzo2D.AST.Lienzo;
+import org.esvux.lienzo2D.AST.Nodo;
+import org.esvux.lienzo2D.compilador.ManejadorErrores;
+import org.esvux.lienzo2D.compilador.Tipos;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.sarina20lives.ast.*;
-import org.sarina20lives.compilacion.*;
 
 public class ParserL2D {
 
@@ -1153,6 +1155,15 @@ Nodo PUNTUAL():{
   token=<DECIMAL> { terminal = Nodo.crearTerminal(Tipos.DOBLE, Tipos.T_DOBLE, token.image, token.image, token.beginLine, token.beginColumn);    
                     return terminal; }
 |
+  <RESTA> 
+(
+  token=<ENTERO>  { terminal = Nodo.crearTerminal(Tipos.ENTERO, Tipos.T_ENTERO, "-"+token.image, token.image, token.beginLine, token.beginColumn);   
+                    return terminal; }
+|
+  token=<DECIMAL> { terminal = Nodo.crearTerminal(Tipos.DOBLE, Tipos.T_DOBLE, "-"+token.image, token.image, token.beginLine, token.beginColumn);    
+                    return terminal; }
+)
+|
   token=<TRUE>    { terminal = Nodo.crearTerminal(Tipos.TRUE, Tipos.T_BOOLEAN, token.image, token.image, token.beginLine, token.beginColumn);     
                     return terminal; }
 |
@@ -1172,75 +1183,75 @@ Nodo PUNTUAL():{
 
 // <> <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  
 TOKEN:{
-    <         ENTERO  : (("-")? ["0"-"9"])+>
-  | <        DECIMAL  : (("-")? ["0"-"9"])+ "." (["0"-"9"])+>
+    <         ENTERO  : (["0"-"9"])+>
+  | <        DECIMAL  : (["0"-"9"])+ "." (["0"-"9"])+>
 
-  | <        LIENZO  : "Lienzo"                                                                                                   >
-  | <      EXTIENDE  : "Extiende"                                                                                                 >
-  | <       PUBLICO  : "publico"                                                                                                  >
-  | <       PRIVADO  : "privado"                                                                                                  >
-  | <     PROTEGIDO  : "protegido"                                                                                                >
-  | <           VAR  : "var"                                                                                                      >
-  | <       ARREGLO  : "arreglo"                                                                                                  >
-  | <     CONSERVAR  : "Conservar"                                                                                                >
-  | <      T_ENTERO  : "entero"                                                                                                   >
-  | <      T_CADENA  : "cadena"                                                                                                   >
-  | <    T_CARACTER  : "caracter"                                                                                                 >
-  | <     T_BOOLEAN  : "boolean"                                                                                                  >
-  | <       T_DOBLE  : "doble"                                                                                                    >
-  | <          TRUE  : "true"                                                                                                     >
-  | <         FALSE  : "false"                                                                                                    >
-  | <            SI  : "si"                                                                                                       >
-  | <          SINO  : "sino"                                                                                                     >
-  | <     COMPROBAR  : "comprobar"                                                                                                >
-  | <          CASO  : "caso"                                                                                                     >
-  | <       DEFECTO  : "defecto"                                                                                                  >
-  | <          PARA  : "para"                                                                                                     >
-  | <      MIENTRAS  : "mientras"                                                                                                 >
-  | <         HACER  : "hacer"                                                                                                    >
-  | <     CONTINUAR  : "Continuar"                                                                                                >
-  | <         SALIR  : "Salir"                                                                                                    >
-  | <       RETORNA  : "retorna"                                                                                                  >
-  | <           P_P  : "Pintar_P"                                                                                                 >
-  | <          P_OR  : "Pintar_OR"                                                                                                >
-  | <           P_S  : "Pintar_S"                                                                                                 >
-  | <     PRINCIPAL  : "Principal"                                                                                                >
-  | <       ORDENAR  : "Ordenar"                                                                                                  >
-  | <          TIPO  : "tipo"                                                                                                     >      
-  | <     SUMARIZAR  : "Sumarizar"                                                                                                >
-  | <    ASCENDENTE  : "ascendente"                                                                                               > 
-  | <   DESCENDENTE  : "descendente"                                                                                              >
-  | <         PARES  : "pares"                                                                                                    >
-  | <       IMPARES  : "impares"                                                                                                  >
-  | <        PRIMOS  : "primos"                                                                                                   >
+  | <        LIENZO  : "Lienzo"      >
+  | <      EXTIENDE  : "Extiende"    >
+  | <       PUBLICO  : "publico"     >
+  | <       PRIVADO  : "privado"     >
+  | <     PROTEGIDO  : "protegido"   >
+  | <           VAR  : "var"         >
+  | <       ARREGLO  : "arreglo"     >
+  | <     CONSERVAR  : "Conservar"   >
+  | <      T_ENTERO  : "entero"      >
+  | <      T_CADENA  : "cadena"      >
+  | <    T_CARACTER  : "caracter"    >
+  | <     T_BOOLEAN  : "boolean"     >
+  | <       T_DOBLE  : "doble"       >
+  | <          TRUE  : "true"        >
+  | <         FALSE  : "false"       >
+  | <            SI  : "si"          >
+  | <          SINO  : "sino"        >
+  | <     COMPROBAR  : "comprobar"   >
+  | <          CASO  : "caso"        >
+  | <       DEFECTO  : "defecto"     >
+  | <          PARA  : "para"        >
+  | <      MIENTRAS  : "mientras"    >
+  | <         HACER  : "hacer"       >
+  | <     CONTINUAR  : "Continuar"   >
+  | <         SALIR  : "Salir"       >
+  | <       RETORNA  : "retorna"     >
+  | <           P_P  : "Pintar_P"    >
+  | <          P_OR  : "Pintar_OR"   >
+  | <           P_S  : "Pintar_S"    >
+  | <     PRINCIPAL  : "Principal"   >
+  | <       ORDENAR  : "Ordenar"     >
+  | <          TIPO  : "tipo"        >
+  | <     SUMARIZAR  : "Sumarizar"   >
+  | <    ASCENDENTE  : "ascendente"  >
+  | <   DESCENDENTE  : "descendente" >
+  | <         PARES  : "pares"       >
+  | <       IMPARES  : "impares"     >
+  | <        PRIMOS  : "primos"      >
 
 
   | <             ID  : ["a"-"z","A"-"Z", "_"] (["a"-"z","A"-"Z","0"-"9","_"])*>
   | <           CHAR  : "'"  ( (~["'","\\","\n","\r"]) | ("\\" ["n","t","v","b","r","f","a","\\","?","'","\""] ) )  "'">
   | <         CADENA  : "\"" ( (~["\"","\\","\n","\r"]) | ("\\" ["n","t","v","b","r","f","a","\\","?","'","\""] ) )* "\"">
-  | <        AUMENTO  : "++">
-  | <     DECREMENTO  : "--">
-  | <           SUMA  : "+">
-  | <          RESTA  : "-">
-  | < MULTIPLICACION  : "*">
-  | <       DIVISION  : "/">
-  | <       POTENCIA  : "^">
+  | <        AUMENTO  : "++"   >
+  | <     DECREMENTO  : "--"   >
+  | <           SUMA  : "+"    >
+  | <          RESTA  : "-"    >
+  | < MULTIPLICACION  : "*"    >
+  | <       DIVISION  : "/"    >
+  | <       POTENCIA  : "^"    >
 
-  | <             OR  : "||">
-  | <            AND  : "&&">
-  | <            NOR  : "!||">
-  | <           NAND  : "!&&">
-  | <            XOR  : "&|">
-  | <            NOT  : "!">
+  | <             OR  : "||"   >
+  | <            AND  : "&&"   >
+  | <            NOR  : "!||"  >
+  | <           NAND  : "!&&"  >
+  | <            XOR  : "&|"   >
+  | <            NOT  : "!"    >
   
-  | <         IGUAL  : "=="                                                                                                       >
-  | <     DIFERENTE  : "!="                                                                                                       >
-  | <         MENOR  : "<"                                                                                                        >
-  | <         MAYOR  : ">"                                                                                                        >
-  | <    MENORIGUAL  : "<="                                                                                                       >
-  | <    MAYORIGUAL  : ">="                                                                                                       >
-  | <          NULO  : "!&¡"                                                                                                      >
-  | <      AUMENTAR  : "+="                                                                                                       >
-  | <     DISMINUIR  : "-="                                                                                                       >
-  | <           FIN  : "$"                                                                                                        >
+  | <         IGUAL  : "=="   >
+  | <     DIFERENTE  : "!="   >
+  | <         MENOR  : "<"    >
+  | <         MAYOR  : ">"    >
+  | <    MENORIGUAL  : "<="   >
+  | <    MAYORIGUAL  : ">="   >
+  | <          NULO  : "!&¡"  >
+  | <      AUMENTAR  : "+="   >
+  | <     DISMINUIR  : "-="   >
+  | <           FIN  : "$"    >
 }

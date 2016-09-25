@@ -24,14 +24,14 @@ public class SentenciaPintarCirculo extends Sentencia {
         boolean hayError = false;
         Nodo hijoX = sentencia.getHijo(0);
         Resultado solX = new Expresion(hijoX, ctx).resolverExpresion();
-        if (!Check.EsTipo(solX.getTipo(), Tipos.T_ENTERO)) {
+        if (!(Check.EsTipo(solX.getTipo(), Tipos.T_ENTERO) || Check.EsTipo(solX.getTipo(), Tipos.T_DOBLE))) {
             manager.addErrorSemantico(hijoX.getFila(), hijoX.getColumna(), "Se esperaba un entero para el parámetro 'Posición X' del método Pintar_P.");
             hayError = true;
         }
         
         Nodo hijoY = sentencia.getHijo(1);
         Resultado solY = new Expresion(hijoY, ctx).resolverExpresion();
-        if (!Check.EsTipo(solY.getTipo(), Tipos.T_ENTERO)) {
+        if (!(Check.EsTipo(solY.getTipo(), Tipos.T_ENTERO) || Check.EsTipo(solY.getTipo(), Tipos.T_DOBLE))) {
             manager.addErrorSemantico(hijoY.getFila(), hijoY.getColumna(), "Se esperaba un entero para el parámetro 'Posición Y' del método Pintar_P.");
             hayError = true;
         }
@@ -45,7 +45,7 @@ public class SentenciaPintarCirculo extends Sentencia {
         
         Nodo hijoDiametro = sentencia.getHijo(3);
         Resultado solDiametro = new Expresion(hijoDiametro, ctx).resolverExpresion();
-        if (!Check.EsTipo(solDiametro.getTipo(), Tipos.T_ENTERO)) {
+        if (!(Check.EsTipo(solDiametro.getTipo(), Tipos.T_ENTERO) || Check.EsTipo(solDiametro.getTipo(), Tipos.T_DOBLE))) {
             manager.addErrorSemantico(hijoDiametro.getFila(), hijoDiametro.getColumna(), "Se esperaba un entero para el parámetro 'Diámetro' del método Pintar_P.");
             hayError = true;
         }

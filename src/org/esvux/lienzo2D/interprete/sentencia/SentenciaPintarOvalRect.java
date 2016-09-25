@@ -24,28 +24,28 @@ public class SentenciaPintarOvalRect extends Sentencia {
         boolean hayError = false;
         Nodo hijoX = sentencia.getHijo(0);
         Resultado solX = new Expresion(hijoX, ctx).resolverExpresion();
-        if (!Check.EsTipo(solX.getTipo(), Tipos.T_ENTERO)) {
+        if (!(Check.EsTipo(solX.getTipo(), Tipos.T_ENTERO) || Check.EsTipo(solX.getTipo(), Tipos.T_DOBLE))) {
             manager.addErrorSemantico(hijoX.getFila(), hijoX.getColumna(), "Se esperaba un entero para el parámetro 'Posición X' del método Pintar_OR.");
             hayError = true;
         }
         
         Nodo hijoY = sentencia.getHijo(1);
         Resultado solY = new Expresion(hijoY, ctx).resolverExpresion();
-        if (!Check.EsTipo(solY.getTipo(), Tipos.T_ENTERO)) {
+        if (!(Check.EsTipo(solY.getTipo(), Tipos.T_ENTERO) || Check.EsTipo(solY.getTipo(), Tipos.T_DOBLE))) {
             manager.addErrorSemantico(hijoY.getFila(), hijoY.getColumna(), "Se esperaba un entero para el parámetro 'Posición Y' del método Pintar_OR.");
             hayError = true;
         }
 
         Nodo hijoAncho = sentencia.getHijo(3);
         Resultado solAncho = new Expresion(hijoAncho, ctx).resolverExpresion();
-        if (!Check.EsTipo(solAncho.getTipo(), Tipos.T_ENTERO)) {
+        if (!(Check.EsTipo(solAncho.getTipo(), Tipos.T_ENTERO) || Check.EsTipo(solAncho.getTipo(), Tipos.T_DOBLE))) {
             manager.addErrorSemantico(hijoAncho.getFila(), hijoAncho.getColumna(), "Se esperaba un entero para el parámetro 'Ancho' del método Pintar_OR.");
             hayError = true;
         }
 
         Nodo hijoAlto = sentencia.getHijo(4);
         Resultado solAlto = new Expresion(hijoAlto, ctx).resolverExpresion();
-        if (!Check.EsTipo(solAlto.getTipo(), Tipos.T_ENTERO)) {
+        if (!(Check.EsTipo(solAlto.getTipo(), Tipos.T_ENTERO) || Check.EsTipo(solAlto.getTipo(), Tipos.T_DOBLE))) {
             manager.addErrorSemantico(hijoAlto.getFila(), hijoAlto.getColumna(), "Se esperaba un entero para el parámetro 'Alto' del método Pintar_OR.");
             hayError = true;
         }

@@ -33,12 +33,12 @@ public class SentenciaSi extends Sentencia {
         if (Check.ToBooleano(condicion.getValor())) {
             Nodo hijoThen = sentencia.getHijo(1);
             SentenciaCuerpo cuerpoThen = new SentenciaCuerpo(hijoThen, this.permiteInterrupciones);
-            resultado = cuerpoThen.ejecutar(ctx, nivel + 1);
+            resultado = cuerpoThen.ejecutar(ctx, nivel);
         } //------------------------------------------------- EJECUCIÓN DEL ELSE
         else {
             Nodo hijoElse = sentencia.getHijo(2);
             SentenciaCuerpo cuerpoElse = new SentenciaCuerpo(hijoElse, this.permiteInterrupciones);
-            resultado = cuerpoElse.ejecutar(ctx, nivel + 1);
+            resultado = cuerpoElse.ejecutar(ctx, nivel);
         }
 
         //------------------------------------------------ LIMPIEZA DEL CONTEXTO

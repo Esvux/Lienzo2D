@@ -25,7 +25,7 @@ public class SentenciaComprobar extends Sentencia {
         int i = 0;
         boolean seCumplioAlguno = false;
         for (; i < todosLosCasos.length - 1; i++) {
-            Nodo hijoCaso = (Nodo)todosLosCasos[i];
+            Nodo hijoCaso = (Nodo) todosLosCasos[i];
             Nodo hijoExpresion = hijoCaso.getHijo(0).getHijo(0);
             Nodo hijoRelacional = new Nodo(Tipos.RELACIONAL, Tipos.NULL, "==", "");
             Nodo hijoCondicion = new Nodo(Tipos.EXPRESION, Tipos.NULL, "expresion", "");
@@ -43,7 +43,7 @@ public class SentenciaComprobar extends Sentencia {
             if (seCumplioAlguno || Check.ToBooleano(condicion.getValor())) {
                 seCumplioAlguno = true;
                 SentenciaCuerpo cuerpo = new SentenciaCuerpo(hijoCaso.getHijo(1), true);
-                resultado = cuerpo.ejecutar(ctx, nivel + 1);
+                resultado = cuerpo.ejecutar(ctx, nivel);
                 if (resultado.esSalir()) {
                     resultado = Resultado.ejecucionCorrecta();
                     break;
@@ -59,10 +59,10 @@ public class SentenciaComprobar extends Sentencia {
             }
         }
         if (!seCumplioAlguno) {
-            Nodo hijoDefalut = (Nodo)todosLosCasos[i];
+            Nodo hijoDefalut = (Nodo) todosLosCasos[i];
             Nodo cuerpoDefault = hijoDefalut.getHijo(0);
-            SentenciaCuerpo cuerpo = new SentenciaCuerpo(cuerpoDefault, false);
-            resultado = cuerpo.ejecutar(ctx, nivel + 1);
+            SentenciaCuerpo cuerpo = new SentenciaCuerpo(cuerpoDefault, true);
+            resultado = cuerpo.ejecutar(ctx, nivel);
         }
 
         ctx.limpiarContexto(nivel);

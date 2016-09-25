@@ -237,7 +237,7 @@ public class Simbolo {
                 + "    <td>" + Tipos.getTipoAsString(this.getTipo()) + "</td>\n"
                 + "    <td>" + Tipos.getVisibilidadAsString(this.getVisibilidad()) + "</td>\n"
                 + "    <td>" + Tipos.getVisibilidadAsString(this.getAmbito()) + "</td>\n"
-                + "    <td>" + ((this.conservar) ? ok : fail) + "</td>\n"
+                + "    <td class='conservar'>" + ((this.conservar) ? ok : fail) + "</td>\n"
                 + "    <td>" + this.getParametros() + "</td>\n"
                 + "    <td>" + this.getClase() + "</td>\n"
                 + "    <td class=\"center\">" + this.getPadre() + "</td>\n"

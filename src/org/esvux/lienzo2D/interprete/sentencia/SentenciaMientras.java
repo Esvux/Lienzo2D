@@ -40,7 +40,7 @@ public class SentenciaMientras extends Sentencia {
             //----------------------------------- EJECUCION DEL CUERPO DEL CICLO
             Nodo hijoCuerpo = sentencia.getHijo(1);
             SentenciaCuerpo cuerpoWhile = new SentenciaCuerpo(hijoCuerpo, true);
-            resultado = cuerpoWhile.ejecutar(ctx, nivel + 1);
+            resultado = cuerpoWhile.ejecutar(ctx, nivel);
 
             //------------------------------------ OCURRIÓ UN BREAK EN EL CUERPO
             if (resultado.esSalir()) {
@@ -52,6 +52,7 @@ public class SentenciaMientras extends Sentencia {
             if (resultado.esRetorno()) {
                 break;
             }
+            ctx.limpiarContexto(nivel);
         }
         
         //------------------------------------------------ LIMPIEZA DEL CONTEXTO

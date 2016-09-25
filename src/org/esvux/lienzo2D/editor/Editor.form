@@ -53,7 +53,7 @@
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="jSeparator_Principal" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="jScrollPane_Consola" pref="115" max="32767" attributes="0"/>
+              <Component id="jScrollPane_Consola" min="-2" pref="115" max="-2" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>

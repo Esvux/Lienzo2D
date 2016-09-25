@@ -87,6 +87,10 @@ public class Check {
     }
     
     public static int ToEntero(String valor){
+        if(valor.contains(".")){
+            Double doble = Double.parseDouble(valor);
+            return doble.intValue();
+        }
         return Integer.parseInt(valor);        
     }
     

@@ -94,22 +94,23 @@ public class LostCanvas extends Canvas {
     }
 
     public void addRectangulo(int x, int y, int ancho, int alto, Color color) {
-        Figura nuevo = new Figura(Figura.RECTANGULO, x, y, alto, ancho, 0, "", color);
+        Figura nuevo = new Figura(Figura.RECTANGULO, x - ancho/2, y - alto/2, alto, ancho, 0, "", color);
         elementos.add(nuevo);
         this.repaint();
     }
 
     public void addOvalo(int x, int y, int ancho, int alto, Color color) {
-        Figura nuevo = new Figura(Figura.OVALO, x, y, alto, ancho, 0, "", color);
+        Figura nuevo = new Figura(Figura.OVALO, x - ancho/2, y-alto/2, alto, ancho, 0, "", color);
         elementos.add(nuevo);
         this.repaint();
     }
 
     public void addCirculo(int x, int y, int diametro, Color color) {
-        Figura nuevo = new Figura(Figura.CIRCULO, x, y, 0, 0, diametro, "", color);
+        Figura nuevo = new Figura(Figura.CIRCULO, x - diametro / 2, y - diametro / 2, 0, 0, diametro, "", color);
         elementos.add(nuevo);
         this.repaint();
     }
+
 
     public void addTexto(int x, int y, String texto, Color color) {
         Figura nuevo = new Figura(Figura.TEXTO, x, y, 0, 0, 0, texto, color);

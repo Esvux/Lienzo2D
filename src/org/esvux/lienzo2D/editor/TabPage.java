@@ -160,7 +160,7 @@ public class TabPage extends JScrollPane {
         } catch (ParseException ex) {
             Logger.getLogger(Lienzo.class.getName()).log(Level.SEVERE, null, ex);
         }
-        TablaSimbolos ts = new TablaSimbolos();
+        TablaSimbolos ts = new TablaSimbolos(lienzo.getNombre());
         System.out.println("Tabla de Simbolos generada...");
         Contexto ctxInicial = new Contexto();
         ctxInicial.agregarAlContexto(lienzo, true);

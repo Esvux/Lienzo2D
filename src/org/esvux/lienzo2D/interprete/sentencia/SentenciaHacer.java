@@ -19,7 +19,8 @@ public class SentenciaHacer extends Sentencia {
         //-------------------------------- PRIMERA ITERACIÓN, LIBRE DE CONDICIÓN
         Nodo hijoCuerpo = sentencia.getHijo(1);
         SentenciaCuerpo cuerpoHacer = new SentenciaCuerpo(hijoCuerpo, true);
-        Resultado resultado = cuerpoHacer.ejecutar(ctx, nivel + 1);
+        Resultado resultado = cuerpoHacer.ejecutar(ctx, nivel);
+        ctx.limpiarContexto(nivel);
         
         //---------------------------------------- OCURRIÓ UN BREAK EN EL CUERPO
         if (resultado.esSalir()) {
@@ -30,7 +31,7 @@ public class SentenciaHacer extends Sentencia {
         if (resultado.esRetorno()) {
             return resultado;
         }
-
+        
         //------------------------------------------- EJECUCIÓN DEL WHILE NORMAL
         SentenciaMientras mientras = new SentenciaMientras(sentencia, true);
         resultado = mientras.ejecutar(ctx, nivel);

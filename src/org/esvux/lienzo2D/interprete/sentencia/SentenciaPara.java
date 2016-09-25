@@ -50,7 +50,7 @@ public class SentenciaPara extends Sentencia {
             //----------------------------------- EJECUCION DEL CUERPO DEL CICLO
             Nodo hijoCuerpo = sentencia.getHijo(3);
             SentenciaCuerpo cuerpoPara = new SentenciaCuerpo(hijoCuerpo, true);
-            resultado = cuerpoPara.ejecutar(ctx, nivel);
+            resultado = cuerpoPara.ejecutar(ctx, nivel + 1);
 
             //------------------------------------ OCURRIÓ UN BREAK EN EL CUERPO
             if (resultado.esSalir()) {
@@ -70,6 +70,7 @@ public class SentenciaPara extends Sentencia {
             } else if (Check.EsTipo(hijoExtra.getHijo(0).getRol(), Tipos.ASIGNACION)) {
                 new SentenciaAsignacion(hijoExtra.getHijo(0)).ejecutar(ctx, nivel);
             }
+            ctx.limpiarContexto(nivel + 1);
         }
 
         //------------------------------------------------ LIMPIEZA DEL CONTEXTO
