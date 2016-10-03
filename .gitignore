@@ -1,6 +1,6 @@
 /lib/
 /build/
 /dist/
-/Errores.html
-/TablaDeSimbolos.html
-/.gitignore
+Errores.html
+TablaDeSimbolos.html
+.gitignore
